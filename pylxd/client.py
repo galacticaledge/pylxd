@@ -462,7 +462,7 @@ class Client:
         self,
         endpoint: str | None = None,
         version: str = "1.0",
-        cert: tuple[str, str] | None = None,
+        cert: Cert | None = None,
         verify: bool = True,
         timeout: float | tuple[float, float] | None = None,
         project: str | None = None,
