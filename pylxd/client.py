@@ -115,12 +115,12 @@ class _UnixAdapter(requests.adapters.HTTPAdapter):
         request: requests.PreparedRequest,
         verify: bool | None,
         proxies: Mapping[str, str] | None = None,
-        cert: tuple[str, str] | None = None
+        cert: str | tuple[str, str] | None = None
     ) -> _UnixSocketHTTPConnectionPool:
         return self.get_connection(request.url, None)
 
-    def request_url(self, 
-        request: requests.PreparedRequest, 
+    def request_url(self,
+        request: requests.PreparedRequest,
         proxies: tuple[str, str] | None = None
     ):
         return request.path_url
@@ -130,7 +130,12 @@ class _UnixAdapter(requests.adapters.HTTPAdapter):
 
 
 class LXDSSLAdapter(requests.adapters.HTTPAdapter):
-    def cert_verify(self, conn, url, verify, cert):
+    def cert_verify(self,
+        conn: urllib3.HTTPSConnectionPool,
+        url: str,
+        verify: str,
+        cert: str | tuple[str, str] | None
+    ):
         with open(verify, "rb") as fd:
             servercert = x509.load_pem_x509_certificate(fd.read())
             fingerprint = servercert.fingerprint(hashes.SHA256())
@@ -142,7 +147,7 @@ class LXDSSLAdapter(requests.adapters.HTTPAdapter):
 def get_session_for_url(
     url: str,
     verify: bool | None = None,
-    cert: tuple[str, str] | None = None
+    cert: str | tuple[str, str] | None = None
 ) -> requests.Session:
     """Create a Session for use with requests for the given URL.
 
@@ -169,17 +174,17 @@ class _APINode:
 
     def __init__(
         self,
-        api_endpoint,
-        session,
-        timeout=None,
-        project=None,
+        api_endpoint: str,
+        session: requests.Session,
+        timeout: float | tuple[float, float] | None = None,
+        project: str | None = None,
     ):
         self._api_endpoint = api_endpoint
         self._timeout = timeout
         self._project = project
         self.session = session
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> _APINode:
         """Converts attribute lookup into the next /<segment> of an api
         url.
 
@@ -198,7 +203,7 @@ class _APINode:
             project=self._project,
         )
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: str) -> _APINode:
         """This converts python api.thing[name] -> ".../thing/name"
 
         :param item: the 'thing' in the square-braces in a python expr.
@@ -254,14 +259,14 @@ class _APINode:
                 raise exceptions.LXDAPIException(response)
 
     @property
-    def scheme(self):
+    def scheme(self) -> str:
         return parse.urlparse(self.api._api_endpoint).scheme
 
     @property
-    def netloc(self):
+    def netloc(self) -> str:
         return parse.urlparse(self.api._api_endpoint).netloc
 
-    def get(self, *args, **kwargs):
+    def get(self, *args, **kwargs) -> requests.Response:
         """Perform an HTTP GET.
 
         Note if 'is_api' is passed in the kwargs then it is popped and used to
@@ -282,7 +287,7 @@ class _APINode:
         )
         return response
 
-    def post(self, *args, **kwargs):
+    def post(self, *args, **kwargs) -> requests.Response:
         """Perform an HTTP POST."""
         kwargs["timeout"] = kwargs.get("timeout", self._timeout)
 
@@ -303,7 +308,7 @@ class _APINode:
         self._assert_response(response, allowed_status_codes=(200, 201, 202))
         return response
 
-    def put(self, *args, **kwargs):
+    def put(self, *args, **kwargs) -> requests.Response:
         """Perform an HTTP PUT."""
         kwargs["timeout"] = kwargs.get("timeout", self._timeout)
 
@@ -316,7 +321,7 @@ class _APINode:
         self._assert_response(response, allowed_status_codes=(200, 202))
         return response
 
-    def patch(self, *args, **kwargs):
+    def patch(self, *args, **kwargs) -> requests.Response:
         """Perform an HTTP PATCH."""
         kwargs["timeout"] = kwargs.get("timeout", self._timeout)
 
@@ -329,7 +334,7 @@ class _APINode:
         self._assert_response(response, allowed_status_codes=(200, 202))
         return response
 
-    def delete(self, *args, **kwargs):
+    def delete(self, *args, **kwargs) -> requests.Response:
         """Perform an HTTP delete."""
         kwargs["timeout"] = kwargs.get("timeout", self._timeout)
 
@@ -388,7 +393,7 @@ class _WebsocketClient(WebSocketBaseClient):
 
 
 # Helper function used by Client.authenticate()
-def _is_a_token(secret):
+def _is_a_token(secret) -> bool:
     """Inspect the provided secret to determine if it is a trust token.
 
     Try to base64 decode and parse the JSON to see if it contains a "secret" key.
@@ -474,7 +479,7 @@ class Client:
         self,
         endpoint: str | None = None,
         version: str = "1.0",
-        cert: tuple[str, str] | None = None,
+        cert: str | tuple[str, str] | None = None,
         verify: bool = True,
         timeout: float | tuple[float, float] | None = None,
         project: str | None = None,
