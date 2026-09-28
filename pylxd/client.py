@@ -563,15 +563,15 @@ class Client:
         self._resource_cache = None
 
     @property
-    def trusted(self):
+    def trusted(self) -> bool:
         return self.host_info["auth"] == "trusted"
 
     @property
-    def server_clustered(self):
+    def server_clustered(self) -> bool:
         return self.host_info["environment"].get("server_clustered", False)
 
     @property
-    def resources(self):
+    def resources(self) -> dict:
         if self._resource_cache is None:
             self.assert_has_api_extension("resources")
             response = self.api.resources.get()
@@ -580,7 +580,7 @@ class Client:
             self._resource_cache = response.json()["metadata"]
         return self._resource_cache
 
-    def has_api_extension(self, name):
+    def has_api_extension(self, name: str) -> bool:
         """Return True if the `name` api extension exists.
 
         :param name: the api_extension to look for.
@@ -590,7 +590,7 @@ class Client:
         """
         return name in self.host_info["api_extensions"]
 
-    def assert_has_api_extension(self, name):
+    def assert_has_api_extension(self, name: str):
         """Asserts that the `name` api_extension exists.
         If not, then is raises the LXDAPIExtensionNotAvailable error.
 
@@ -602,7 +602,11 @@ class Client:
         if not self.has_api_extension(name):
             raise exceptions.LXDAPIExtensionNotAvailable(name)
 
-    def authenticate(self, secret, use_token_auth=True):
+    def authenticate(
+        self,
+        secret: str | bytes,
+        use_token_auth: bool = True
+    ):
         if self.trusted:
             return
 
@@ -632,7 +636,7 @@ class Client:
         self.host_info = response.json()["metadata"]
 
     @property
-    def websocket_url(self):
+    def websocket_url(self) -> str:
         if self.api.scheme in ("http", "https"):
             host = self.api.netloc
             if self.api.scheme == "http":
@@ -645,7 +649,10 @@ class Client:
         url = parse.urlunparse((scheme, host, "", "", "", ""))
         return url
 
-    def events(self, websocket_client=None, event_types=None):
+    def events(self,
+        websocket_client: WebSocketBaseClient | None = None,
+        event_types: set[EventType] | None = None
+    ) -> WebSocketBaseClient:
         """Get a websocket client for getting events.
 
         /events is a websocket url, and so must be handled differently than
