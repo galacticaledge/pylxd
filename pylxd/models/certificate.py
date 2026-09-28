@@ -11,6 +11,8 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+from __future__ import annotations
+
 import json
 from base64 import b64encode
 
@@ -122,5 +124,5 @@ class Certificate(model.Model):
         return b64encode(token.encode()).decode()
 
     @property
-    def api(self) -> _APINode:
+    def api(self) ->:
         return self.client.api.certificates[self.fingerprint]
