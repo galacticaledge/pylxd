@@ -17,6 +17,7 @@ from base64 import b64encode
 from cryptography import x509
 from cryptography.hazmat.primitives.serialization import Encoding
 
+from pylxd.client import Client
 from pylxd.models import _model as model
 
 
@@ -31,14 +32,14 @@ class Certificate(model.Model):
     restricted = model.Attribute()
 
     @classmethod
-    def get(cls, client, fingerprint):
+    def get(cls, client: Client, fingerprint: str) -> Certificate:
         """Get a certificate by fingerprint."""
         response = client.api.certificates[fingerprint].get()
 
         return cls(client, **response.json()["metadata"])
 
     @classmethod
-    def all(cls, client):
+    def all(cls, client: Client) -> list[Certificate]:
         """Get all certificates."""
         response = client.api.certificates.get()
 
@@ -51,15 +52,15 @@ class Certificate(model.Model):
     @classmethod
     def create(
         cls,
-        client,
-        password,
-        cert_data,
-        cert_type="client",
-        name="",
-        projects=None,
-        restricted=False,
-        secret="",
-    ):
+        client: Client,
+        password: str,
+        cert_data: bytes,
+        cert_type: str = "client",
+        name: str = "",
+        projects: list[str] | None = None,
+        restricted: bool =False,
+        secret: str = "",
+    ) -> Certificate:
         """Create a new certificate."""
         cert = x509.load_pem_x509_certificate(cert_data)
         base64_cert = cert.public_bytes(Encoding.PEM).decode("utf-8")
@@ -89,11 +90,11 @@ class Certificate(model.Model):
     @classmethod
     def create_token(
         cls,
-        client,
-        name="",
-        projects=None,
-        restricted=False,
-    ):
+        client: Client,
+        name: str = "",
+        projects: list[str] | None = None,
+        restricted: bool = False,
+    ) -> str:
         """Create a new token."""
         data = {
             "password": "",
@@ -121,5 +122,5 @@ class Certificate(model.Model):
         return b64encode(token.encode()).decode()
 
     @property
-    def api(self):
+    def api(self) -> _APINode:
         return self.client.api.certificates[self.fingerprint]
