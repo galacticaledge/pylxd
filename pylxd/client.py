@@ -131,7 +131,11 @@ class LXDSSLAdapter(requests.adapters.HTTPAdapter):
         super().cert_verify(conn, url, False, cert)
 
 
-def get_session_for_url(url: str, verify=None, cert=None) -> requests.Session:
+def get_session_for_url(
+    url: str,
+    verify: bool | None = None,
+    cert: Cert | tuple[str, str] | None = None
+) -> requests.Session:
     """Create a Session for use with requests for the given URL.
 
     Call sites can use this to customise the session before passing into a Client.
