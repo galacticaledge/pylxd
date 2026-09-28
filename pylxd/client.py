@@ -460,13 +460,13 @@ class Client:
 
     def __init__(
         self,
-        endpoint=None,
-        version="1.0",
-        cert=None,
-        verify=True,
-        timeout=None,
-        project=None,
-        session=None,
+        endpoint: str | None = None,
+        version: str = "1.0",
+        cert: tuple[str, str] | None = None,
+        verify: bool = True,
+        timeout: float | tuple[float, float] | None = None,
+        project: str | None = None,
+        session: requests.Session | None = None,
     ):
         """Constructs a LXD client
 
