@@ -65,7 +65,7 @@ class EventType(Enum):
 
 
 class _UnixSocketHTTPConnection(urllib3.connection.HTTPConnection):
-    def __init__(self, unix_socket_url):
+    def __init__(self, unix_socket_url: str):
         super().__init__("localhost", timeout=SOCKET_CONNECTION_TIMEOUT)
         self.unix_socket_url = unix_socket_url
         self.timeout = SOCKET_CONNECTION_TIMEOUT
