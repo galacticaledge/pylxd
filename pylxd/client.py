@@ -84,7 +84,7 @@ class _UnixSocketHTTPConnection(urllib3.connection.HTTPConnection):
 
 
 class _UnixSocketHTTPConnectionPool(urllib3.HTTPConnectionPool):
-    def __init__(self, socket_path):
+    def __init__(self, socket_path: str):
         super().__init__("localhost")
         self.socket_path = socket_path
 
@@ -93,13 +93,13 @@ class _UnixSocketHTTPConnectionPool(urllib3.HTTPConnectionPool):
 
 
 class _UnixAdapter(requests.adapters.HTTPAdapter):
-    def __init__(self, pool_connections=25, *args, **kwargs):
+    def __init__(self, pool_connections: int = 25, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.pools = urllib3._collections.RecentlyUsedContainer(
             pool_connections, dispose_func=lambda p: p.close()
         )
 
-    def get_connection(self, url, proxies):
+    def get_connection(self, url: str, proxies) -> _UnixSocketHTTPConnectionPool:
         with self.pools.lock:
             conn = self.pools.get(url)
             if conn:
@@ -110,11 +110,19 @@ class _UnixAdapter(requests.adapters.HTTPAdapter):
 
         return conn
 
-    # This method is needed fo compatibility with later requests versions.
-    def get_connection_with_tls_context(self, request, verify, proxies=None, cert=None):
+    # This method is needed for compatibility with later requests versions.
+    def get_connection_with_tls_context(self,
+        request: requests.PreparedRequest,
+        verify: bool | None,
+        proxies: Mapping[str, str] | None = None,
+        cert: tuple[str, str] | None = None
+    ) -> _UnixSocketHTTPConnectionPool:
         return self.get_connection(request.url, None)
 
-    def request_url(self, request, proxies):
+    def request_url(self, 
+        request: requests.PreparedRequest, 
+        proxies: tuple[str, str] | None = None
+    ):
         return request.path_url
 
     def close(self):
@@ -134,7 +142,7 @@ class LXDSSLAdapter(requests.adapters.HTTPAdapter):
 def get_session_for_url(
     url: str,
     verify: bool | None = None,
-    cert: Cert | tuple[str, str] | None = None
+    cert: tuple[str, str] | None = None
 ) -> requests.Session:
     """Create a Session for use with requests for the given URL.
 
@@ -466,7 +474,7 @@ class Client:
         self,
         endpoint: str | None = None,
         version: str = "1.0",
-        cert: Cert | tuple[str, str] | None = None,
+        cert: tuple[str, str] | None = None,
         verify: bool = True,
         timeout: float | tuple[float, float] | None = None,
         project: str | None = None,
