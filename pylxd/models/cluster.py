@@ -86,14 +86,14 @@ class ClusterMember(model.Model):
     cluster = model.Parent()
 
     @classmethod
-    def get(cls, client: Client, server_name: str):
+    def get(cls, client: Client, server_name: str) -> ClusterMember:
         """Get a cluster member by name."""
         response = client.api.cluster.members[server_name].get()
 
         return cls(client, **response.json()["metadata"])
 
     @classmethod
-    def all(cls, client: Client, *args):
+    def all(cls, client: Client, *args) -> list[ClusterMember]:
         """Get all cluster members."""
         response = client.api.cluster.members.get()
 
