@@ -115,7 +115,12 @@ class Image(model.Model):
 
     @classmethod
     def create(
-        cls, client, image_data, metadata=None, public=False, wait=True, vm=False
+        cls,
+        image_data: bytes | IO[bytes],
+        metadata: bytes | IO[bytes] | None = None,
+        public: bool = False,
+        wait: bool = True,
+        vm: bool = False,
     ) -> Image:
         """Create an image.
 
